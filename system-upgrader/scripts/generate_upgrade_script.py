@@ -90,8 +90,9 @@ trap 'echo "❌ Upgrade failed at line $LINENO"' ERR
 echo "🚀 Starting system upgrade..."
 echo ""
 
-# Track failures
-declare -a FAILED_COMMANDS=()
+# Track failures via temp dir so background subshells can write to it
+FAIL_DIR=$(mktemp -d)
+trap 'rm -rf "$FAIL_DIR"' EXIT
 
 # Function to run command and track status
 run_cmd() {
@@ -102,7 +103,7 @@ run_cmd() {
         echo "✅ $name completed"
     else
         echo "❌ $name failed"
-        FAILED_COMMANDS+=("$name")
+        echo "$name" > "$FAIL_DIR/$(echo "$name" | tr ' ' '_')"
     fi
 }
 
@@ -152,6 +153,12 @@ echo ""
 # ===================================
 echo ""
 echo "✨ System upgrade completed!"
+
+# Collect failures written by background subshells
+declare -a FAILED_COMMANDS=()
+for f in "$FAIL_DIR"/*; do
+    [ -f "$f" ] && FAILED_COMMANDS+=("$(cat "$f")")
+done
 
 if [ ${#FAILED_COMMANDS[@]} -eq 0 ]; then
     echo "✅ All commands succeeded"
