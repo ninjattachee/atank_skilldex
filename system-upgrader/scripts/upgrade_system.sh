@@ -44,11 +44,11 @@ echo "🔧 Phase 2: User-space tool updates (parallel)"
 echo ""
 
 # Run user-space updates in parallel
-run_cmd "flatpak update" "flatpak" &
-run_cmd "https_proxy= bun upgrade && https_proxy= bun update -g" "bun" &
+run_cmd "flatpak update -y" "flatpak" &
+run_cmd "bun upgrade && bun update -g" "bun" &
 run_cmd "pnpm self-update && pnpm up -g" "pnpm" &
 run_cmd "uv self update && uv tool upgrade --all" "uv" &
-run_cmd "claude update" "claude" &
+run_cmd "claude update && pi update" "claude" &
 
 # Wait for all parallel jobs
 wait
